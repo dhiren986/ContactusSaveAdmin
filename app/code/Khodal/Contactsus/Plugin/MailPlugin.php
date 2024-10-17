@@ -85,15 +85,29 @@ class MailPlugin
         // Retrieve the primary recipient email address
         $recipient = $this->scopeConfig->getValue(self::XML_PATH_EMAIL_RECIPIENT, ScopeInterface::SCOPE_STORE);
 
+        // Handle the primary recipient
+        if (!empty($recipient)) {
+            $recipient = [$recipient]; // Wrap it in an array
+        } else {
+            $recipient = []; // Initialize as an empty array if no value
+        }
+
         // Retrieve additional recipient email addresses
         $multiRecipient = $this->scopeConfig->getValue(self::XML_PATH_EMAIL_RECIPIENTS, ScopeInterface::SCOPE_STORE);
 
-        // Combine the primary recipient and additional recipients
-        $recipients = array_filter(array_unique(array_map('trim', array_merge(
-            [$recipient],
-            explode(',', $multiRecipient)
-        ))));
+        // Initialize $multiRecipients as an empty array
+        $multiRecipients = [];
 
+        if (!empty($multiRecipient)) {
+            // Split the string into an array and trim each value
+            $multiRecipients = array_map('trim', explode(',', $multiRecipient));
+        }
+
+        // Combine the primary recipient and additional recipients
+        $recipients = array_filter(array_unique(array_merge(
+            $recipient,
+            $multiRecipients // This should now be an array
+        )));
         // Send the email using TransportBuilder
         $this->inlineTranslation->suspend();
         try {
